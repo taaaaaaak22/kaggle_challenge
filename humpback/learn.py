@@ -1,6 +1,7 @@
 import numpy as np 
 import pandas as pd 
 import os
+import gc
 import matplotlib.pyplot as plt
 import matplotlib.image as mplimg
 from matplotlib.pyplot import imshow
@@ -20,7 +21,8 @@ from keras.models import Sequential
 
 import warnings
 
-train_df = pd.read_csv("../input/humpback-whale-identification/train.csv")
+gc.collect()
+train_df = pd.read_csv("./input/humpback-whale-identification/train.csv")
 
 # 画像準備
 def prepareImages(data, m, dataset):
@@ -29,7 +31,7 @@ def prepareImages(data, m, dataset):
     count = 0
     
     for fig in data['Image']:
-        img = image.load_img("../input/humpback-whale-identification/" + dataset + "/" + fig, target_size=(100, 100, 3))
+        img = image.load_img("./input/humpback-whale-identification/" + dataset + "/" + fig, target_size=(100, 100, 3))
         x = image.img_to_array(img)
         x = preprocess_input(x)
         
@@ -79,16 +81,19 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 
 # 学習
 history = model.fit(X, y, epochs=100, batch_size=100, verbose=1)
+# open('model.json',"w").write(model.to_json())
+# model.save_weights('weight.hdf5')
+
 gc.collect()
 
-plt.plot(history.history['acc'])
-plt.title('Model accuracy')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.show()
+# plt.plot(history.history['accuracy'])
+# plt.title('Model accuracy')
+# plt.ylabel('Accuracy')
+# plt.xlabel('Epoch')
+# plt.show()
 
 # 実際に推測
-test = os.listdir("../input/input/humpback-whale-identification/test/")
+test = os.listdir("./input/humpback-whale-identification/test/")
 col = ['Image']
 test_df = pd.DataFrame(test, columns=col)
 test_df['Id'] = ''
@@ -102,4 +107,4 @@ for i, pred in enumerate(predictions):
     test_df.loc[i, 'Id'] = ' '.join(label_encoder.inverse_transform(pred.argsort()[-5:][::-1]))
     
 test_df.head(10)
-test_df.to_csv('submission.csv', index=False)
+test_df.to_csv('./submission.csv', index=False)
